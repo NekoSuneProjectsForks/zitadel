@@ -49,8 +49,34 @@ const routes: Routes = Object.values(typeMap).map(({ path, component }) => {
   };
 });
 
+// Discord, Twitch and Kick don't have dedicated provider types (that would require proto changes
+// and regenerating stubs across the Go backend, this console and the login app). Instead they're
+// presets on top of the existing Generic OAuth2 (Discord, Kick) and Generic OIDC (Twitch) provider
+// types: same create/edit forms and storage, just pre-filled with the right endpoints/scopes so
+// nobody has to look those up by hand. See ProviderOAuthComponent/ProviderOIDCComponent presets.
+const presetRoutes: Routes = [
+  { path: 'discord', preset: 'discord', component: ProviderOAuthComponent },
+  { path: 'kick', preset: 'kick', component: ProviderOAuthComponent },
+  { path: 'twitch', preset: 'twitch', component: ProviderOIDCComponent },
+].map(({ path, preset, component }) => {
+  return {
+    path,
+    children: [
+      {
+        path: 'create',
+        component,
+        data: { preset },
+      },
+      {
+        path: ':id',
+        component,
+      },
+    ],
+  };
+});
+
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
+  imports: [RouterModule.forChild([...routes, ...presetRoutes])],
   exports: [RouterModule],
 })
 export class ProvidersRoutingModule {}

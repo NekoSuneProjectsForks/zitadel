@@ -188,6 +188,54 @@
     class="item card"
     [routerLink]="
       serviceType === PolicyComponentServiceType.ADMIN
+        ? ['/instance', 'provider', 'discord', 'create']
+        : serviceType === PolicyComponentServiceType.MGMT
+          ? ['/org', 'provider', 'discord', 'create']
+          : []
+    "
+  >
+    <div class="idp-badge discord">D</div>
+    <div class="text-container">
+      <span class="title">Discord</span>
+    </div>
+  </a>
+
+  <a
+    class="item card"
+    [routerLink]="
+      serviceType === PolicyComponentServiceType.ADMIN
+        ? ['/instance', 'provider', 'twitch', 'create']
+        : serviceType === PolicyComponentServiceType.MGMT
+          ? ['/org', 'provider', 'twitch', 'create']
+          : []
+    "
+  >
+    <div class="idp-badge twitch">T</div>
+    <div class="text-container">
+      <span class="title">Twitch</span>
+    </div>
+  </a>
+
+  <a
+    class="item card"
+    [routerLink]="
+      serviceType === PolicyComponentServiceType.ADMIN
+        ? ['/instance', 'provider', 'kick', 'create']
+        : serviceType === PolicyComponentServiceType.MGMT
+          ? ['/org', 'provider', 'kick', 'create']
+          : []
+    "
+  >
+    <div class="idp-badge kick">K</div>
+    <div class="text-container">
+      <span class="title">Kick</span>
+    </div>
+  </a>
+
+  <a
+    class="item card"
+    [routerLink]="
+      serviceType === PolicyComponentServiceType.ADMIN
         ? ['/instance', 'provider', 'ldap', 'create']
         : serviceType === PolicyComponentServiceType.MGMT
           ? ['/org', 'provider', 'ldap', 'create']

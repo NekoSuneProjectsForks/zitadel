@@ -110,6 +110,35 @@
         }
       }
 
+      // Simple colored-letter badges for providers without a dedicated logo asset shipped in this
+      // console (they're presets on top of Generic OAuth2/OIDC, not official brand logos).
+      .idp-badge {
+        margin-right: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 36px;
+        width: 36px;
+        border-radius: 50%;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+
+        &.discord {
+          background-color: #5865f2;
+        }
+
+        &.twitch {
+          background-color: #9146ff;
+        }
+
+        &.kick {
+          background-color: #53fc18;
+          color: #0e0e10;
+        }
+      }
+
       .text-container {
         display: flex;
         flex-direction: column;

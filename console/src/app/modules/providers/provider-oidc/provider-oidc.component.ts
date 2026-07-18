@@ -25,6 +25,18 @@ import { requiredValidator } from '../../form-field/validators/validators';
 import { PolicyComponentServiceType } from '../../policies/policy-component-types.enum';
 import { ProviderNextService } from '../provider-next/provider-next.service';
 
+// Twitch doesn't have a dedicated provider type (that would require proto changes and
+// regenerating stubs across the Go backend, this console and the login app). Its "Add provider"
+// tile routes here, to the generic OIDC form, pre-filled with its standards-compliant OIDC issuer
+// so nobody has to look it up by hand.
+const OIDC_PRESETS: Record<string, { name: string; issuer: string; scopesList: string[] }> = {
+  twitch: {
+    name: 'Twitch',
+    issuer: 'https://id.twitch.tv/oauth2',
+    scopesList: ['openid', 'user:read:email'],
+  },
+};
+
 @Component({
   selector: 'cnsl-provider-oidc',
   templateUrl: './provider-oidc.component.html',
@@ -119,6 +131,11 @@ export class ProviderOIDCComponent {
       if (this.id) {
         this.clientSecret?.setValidators([]);
         this.getData(this.id);
+      } else {
+        const preset = OIDC_PRESETS[data['preset']];
+        if (preset) {
+          this.form.patchValue(preset);
+        }
       }
     });
   }

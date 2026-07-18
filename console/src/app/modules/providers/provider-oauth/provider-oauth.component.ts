@@ -26,6 +26,34 @@ import { requiredValidator } from '../../form-field/validators/validators';
 import { PolicyComponentServiceType } from '../../policies/policy-component-types.enum';
 import { ProviderNextService } from '../provider-next/provider-next.service';
 
+// Discord and Kick don't have a dedicated provider type (that would require proto changes and
+// regenerating stubs across the Go backend, this console and the login app). Instead their "Add
+// provider" tiles route here, to the generic OAuth2 form, pre-filled with the right endpoints/
+// scopes so nobody has to look those up by hand. The ID Attribute value is only a form
+// placeholder - the backend detects these hosts and uses its own dedicated claim mapping instead
+// of the configured ID Attribute (see internal/command/idp_model.go).
+const OAUTH_PRESETS: Record<
+  string,
+  { name: string; authorizationEndpoint: string; tokenEndpoint: string; userEndpoint: string; idAttribute: string; scopesList: string[] }
+> = {
+  discord: {
+    name: 'Discord',
+    authorizationEndpoint: 'https://discord.com/oauth2/authorize',
+    tokenEndpoint: 'https://discord.com/api/oauth2/token',
+    userEndpoint: 'https://discord.com/api/users/@me',
+    idAttribute: 'id',
+    scopesList: ['identify', 'email'],
+  },
+  kick: {
+    name: 'Kick',
+    authorizationEndpoint: 'https://id.kick.com/oauth/authorize',
+    tokenEndpoint: 'https://id.kick.com/oauth/token',
+    userEndpoint: 'https://api.kick.com/public/v1/users',
+    idAttribute: 'user_id',
+    scopesList: ['user:read'],
+  },
+};
+
 @Component({
   selector: 'cnsl-provider-oauth',
   styleUrls: ['./provider-oauth.component.scss'],
@@ -140,6 +168,11 @@ export class ProviderOAuthComponent {
       if (this.id) {
         this.clientSecret?.setValidators([]);
         this.getData(this.id);
+      } else {
+        const preset = OAUTH_PRESETS[data['preset']];
+        if (preset) {
+          this.form.patchValue(preset);
+        }
       }
     });
   }
