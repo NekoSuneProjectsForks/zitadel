@@ -1,0 +1,82 @@
+name: Build and Push Fork Docker Images
+
+# This is a fork-specific workflow, separate from the upstream release pipeline
+# (ci.yml / pack.yml / release.yml), which is hardcoded to push to ghcr.io/zitadel/...
+# and relies on secrets (Google Artifact Registry key, Homebrew/Helm bot tokens) that
+# only the upstream ZITADEL org has configured. This workflow only needs the built-in
+# GITHUB_TOKEN and pushes to this fork's own ghcr.io namespace instead.
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute lowercase image namespace
+        id: namespace
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      # Builds zitadel/zitadel:local via apps/api/Dockerfile (see apps/api/AGENTS.md).
+      # Single-arch (the runner's own architecture) - the upstream pipeline cross-builds
+      # linux/amd64 + linux/arm64 via a matrix, which isn't needed for a personal fork build.
+      - name: Build API image
+        run: pnpm nx run @zitadel/api:pack
+
+      # Builds zitadel/zitadel-login:local via apps/login/Dockerfile (see apps/login/AGENTS.md).
+      - name: Build Login image
+        run: pnpm nx run @zitadel/login:pack
+
+      - name: Tag and push images
+        env:
+          OWNER: ${{ steps.namespace.outputs.owner }}
+          SHA: ${{ github.sha }}
+        run: |
+          docker tag zitadel/zitadel:local ghcr.io/${OWNER}/zitadel:latest
+          docker tag zitadel/zitadel:local ghcr.io/${OWNER}/zitadel:${SHA}
+          docker push ghcr.io/${OWNER}/zitadel:latest
+          docker push ghcr.io/${OWNER}/zitadel:${SHA}
+
+          docker tag zitadel/zitadel-login:local ghcr.io/${OWNER}/zitadel-login:latest
+          docker tag zitadel/zitadel-login:local ghcr.io/${OWNER}/zitadel-login:${SHA}
+          docker push ghcr.io/${OWNER}/zitadel-login:latest
+          docker push ghcr.io/${OWNER}/zitadel-login:${SHA}
