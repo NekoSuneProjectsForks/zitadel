@@ -29,6 +29,8 @@ type Props = {
   email: string;
   firstname: string;
   lastname: string;
+  username?: string;
+  displayname?: string;
   organization: string;
   requestId?: string;
 };
@@ -38,6 +40,8 @@ export function SetRegisterPasswordForm({
   email,
   firstname,
   lastname,
+  username,
+  displayname,
   organization,
   requestId,
 }: Props) {
@@ -65,6 +69,8 @@ export function SetRegisterPasswordForm({
         email: email,
         firstName: firstname,
         lastName: lastname,
+        username: username,
+        displayName: displayname,
         organization: organization,
         requestId: requestId,
         password: values.password,

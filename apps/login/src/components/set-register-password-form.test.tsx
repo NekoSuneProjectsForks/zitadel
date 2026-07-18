@@ -1,7 +1,8 @@
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { create } from "@zitadel/client";
 import { PasswordComplexitySettingsSchema } from "@zitadel/proto/zitadel/settings/v2/password_settings_pb";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { registerUser } from "@/lib/server/register";
 import { SetRegisterPasswordForm } from "./set-register-password-form";
 
 vi.mock("next/navigation", () => ({
@@ -42,5 +43,32 @@ describe("SetRegisterPasswordForm", () => {
       />,
     );
     expect(getByTestId("password-text-input")).toHaveFocus();
+  });
+
+  test("should carry the username and display name chosen on the previous step through to registerUser", async () => {
+    const { getByTestId } = render(
+      <SetRegisterPasswordForm
+        passwordComplexitySettings={defaultComplexitySettings}
+        email="test@example.com"
+        firstname="Test"
+        lastname="User"
+        username="chosen-username"
+        displayname="Chosen Display Name"
+        organization="org-1"
+      />,
+    );
+
+    fireEvent.change(getByTestId("password-text-input"), { target: { value: "Password1!" } });
+    fireEvent.change(getByTestId("password-confirm-text-input"), { target: { value: "Password1!" } });
+    fireEvent.click(getByTestId("submit-button"));
+
+    await waitFor(() =>
+      expect(registerUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          username: "chosen-username",
+          displayName: "Chosen Display Name",
+        }),
+      ),
+    );
   });
 });
