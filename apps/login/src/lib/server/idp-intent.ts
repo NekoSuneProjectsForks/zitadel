@@ -612,9 +612,14 @@ async function handleAutoCreation(ctx: IDPHandlerContext): Promise<IDPHandlerRes
       return { redirect: `/idp/${provider}/failure?${params}&error=no_organization_context` };
     }
 
-    // Check if required profile fields are present
-    if (!createUserData.profile?.givenName || !createUserData.profile?.familyName) {
-      logger.info("Missing required profile fields (givenName or familyName), redirecting to complete registration");
+    // Check if required profile fields are present. A missing username is treated the same as a
+    // missing name: rather than letting it silently fall back to the email address later, always
+    // send the user to the complete-registration form so they choose their own username and
+    // display name instead of having the IDP's data used automatically.
+    if (!createUserData.profile?.givenName || !createUserData.profile?.familyName || !createUserData.username) {
+      logger.info(
+        "Missing required profile fields (givenName, familyName or username), redirecting to complete registration",
+      );
 
       if (!idpInformation!.userId) {
         logger.error("IDP intent missing userId, cannot redirect to complete registration");

@@ -20,6 +20,7 @@ type Inputs =
       lastname: string;
       email: string;
       username?: string;
+      displayname?: string;
     }
   | FieldValues;
 
@@ -55,6 +56,10 @@ export function RegisterFormIDPIncomplete({
       email: defaultValues?.email ?? "",
       firstname: defaultValues?.firstname ?? "",
       lastname: defaultValues?.lastname ?? "",
+      // Pre-fill with what the provider suggested, but the user always confirms/edits it below -
+      // it's never silently used as-is.
+      username: idpUserName ?? "",
+      displayname: "",
     },
   });
 
@@ -75,6 +80,8 @@ export function RegisterFormIDPIncomplete({
         email: values.email,
         firstName: values.firstname,
         lastName: values.lastname,
+        username: values.username,
+        displayName: values.displayname,
         organization: organization,
         requestId: requestId,
         idpIntent: idpIntent,
@@ -95,26 +102,33 @@ export function RegisterFormIDPIncomplete({
       {samlData && <AutoSubmitForm url={samlData.url} fields={samlData.fields} />}
       <form className="w-full">
         <div className="mb-4 grid grid-cols-1 gap-4">
-          {!idpUserName && (
-            <div className="">
-              <TextInput
-                type="text"
-                autoComplete="username"
-                autoFocus
-                required
-                {...register("username", { required: "Username is required" })}
-                label="Username"
-                error={errors.username?.message as string}
-                data-testid="username-text-input"
-              />
-            </div>
-          )}
+          <div className="">
+            <TextInput
+              type="text"
+              autoComplete="username"
+              autoFocus
+              required
+              {...register("username", { required: t("required.username") })}
+              label={t("labels.username")}
+              error={errors.username?.message as string}
+              data-testid="username-text-input"
+            />
+          </div>
+          <div className="">
+            <TextInput
+              type="text"
+              autoComplete="nickname"
+              {...register("displayname")}
+              label={t("labels.displayname")}
+              error={errors.displayname?.message as string}
+              data-testid="displayname-text-input"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="">
               <TextInput
                 type="firstname"
                 autoComplete="firstname"
-                autoFocus={!!idpUserName}
                 required
                 {...register("firstname", { required: t("required.firstname") })}
                 label={t("labels.firstname")}

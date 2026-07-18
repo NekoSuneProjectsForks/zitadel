@@ -23,6 +23,8 @@ type Inputs =
       firstname: string;
       lastname: string;
       email: string;
+      username: string;
+      displayname?: string;
     }
   | FieldValues;
 
@@ -72,6 +74,8 @@ export function RegisterForm({
         email: values.email,
         firstName: values.firstname,
         lastName: values.lastname,
+        username: values.username,
+        displayName: values.displayname,
         organization: organization,
         requestId: requestId,
       });
@@ -150,6 +154,27 @@ export function RegisterForm({
               label={t("labels.email")}
               error={errors.email?.message as string}
               data-testid="email-text-input"
+            />
+          </div>
+          <div className="col-span-2">
+            <TextInput
+              type="text"
+              autoComplete="username"
+              required
+              {...register("username", { required: t("required.username") })}
+              label={t("labels.username")}
+              error={errors.username?.message as string}
+              data-testid="username-text-input"
+            />
+          </div>
+          <div className="col-span-2">
+            <TextInput
+              type="text"
+              autoComplete="nickname"
+              {...register("displayname")}
+              label={t("labels.displayname")}
+              error={errors.displayname?.message as string}
+              data-testid="displayname-text-input"
             />
           </div>
         </div>

@@ -29,4 +29,10 @@ describe("RegisterForm", () => {
     const { getByTestId } = render(<RegisterForm legal={defaultLegal} organization="org-1" idpCount={0} />);
     expect(getByTestId("firstname-text-input")).toHaveFocus();
   });
+
+  test("should show editable username and display name inputs so they never silently default to email/real name", () => {
+    const { getByTestId } = render(<RegisterForm legal={defaultLegal} organization="org-1" idpCount={0} />);
+    expect(getByTestId("username-text-input")).toBeInTheDocument();
+    expect(getByTestId("displayname-text-input")).toBeInTheDocument();
+  });
 });

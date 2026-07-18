@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/zitadel/logging"
@@ -17,10 +18,12 @@ import (
 	providers "github.com/zitadel/zitadel/internal/idp"
 	"github.com/zitadel/zitadel/internal/idp/providers/apple"
 	"github.com/zitadel/zitadel/internal/idp/providers/azuread"
+	"github.com/zitadel/zitadel/internal/idp/providers/discord"
 	"github.com/zitadel/zitadel/internal/idp/providers/github"
 	"github.com/zitadel/zitadel/internal/idp/providers/gitlab"
 	"github.com/zitadel/zitadel/internal/idp/providers/google"
 	"github.com/zitadel/zitadel/internal/idp/providers/jwt"
+	"github.com/zitadel/zitadel/internal/idp/providers/kick"
 	"github.com/zitadel/zitadel/internal/idp/providers/ldap"
 	"github.com/zitadel/zitadel/internal/idp/providers/oauth"
 	"github.com/zitadel/zitadel/internal/idp/providers/oidc"
@@ -201,11 +204,30 @@ func (wm *OAuthIDPWriteModel) ToProvider(callbackURL string, idpAlg crypto.Encry
 		wm.Name,
 		wm.UserEndpoint,
 		func() providers.User {
-			return oauth.NewUserMapper(wm.IDAttribute)
+			return knownOAuthProviderUserMapper(wm.AuthorizationEndpoint, wm.TokenEndpoint, wm.UserEndpoint, wm.IDAttribute)
 		},
 		httpClient,
 		opts...,
 	)
+}
+
+// knownOAuthProviderUserMapper returns a purpose-built [providers.User] mapper for a handful of
+// well-known OAuth2-only providers (Discord, Kick) configured through the generic OAuth2 provider
+// type, detected by their configured endpoint hosts. Their userinfo responses don't carry the
+// claim names the generic, action-script-driven [oauth.UserMapper] understands (it only reads the
+// single configured ID attribute and otherwise returns everything empty), so without this a
+// Discord/Kick sign-up ends up with an empty username/display name/email and, if the ID attribute
+// doesn't match either, fails outright.
+func knownOAuthProviderUserMapper(authorizationEndpoint, tokenEndpoint, userEndpoint, idAttribute string) providers.User {
+	endpoints := authorizationEndpoint + " " + tokenEndpoint + " " + userEndpoint
+	switch {
+	case strings.Contains(endpoints, "discord.com"):
+		return new(discord.User)
+	case strings.Contains(endpoints, "kick.com"):
+		return new(kick.User)
+	default:
+		return oauth.NewUserMapper(idAttribute)
+	}
 }
 
 func (wm *OAuthIDPWriteModel) GetProviderOptions() idp.Options {

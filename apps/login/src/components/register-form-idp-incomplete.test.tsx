@@ -28,13 +28,20 @@ const defaultProps = {
 describe("RegisterFormIDPIncomplete", () => {
   afterEach(cleanup);
 
-  test("should autofocus the username input when idpUserName is not provided", () => {
+  test("should always show and autofocus an editable username input, even when the IDP suggested one", () => {
     const { getByTestId } = render(<RegisterFormIDPIncomplete {...defaultProps} />);
     expect(getByTestId("username-text-input")).toHaveFocus();
   });
 
-  test("should autofocus the firstname input when idpUserName is provided", () => {
+  test("should still show and autofocus the username input when idpUserName is provided, pre-filled with the suggestion", () => {
     const { getByTestId } = render(<RegisterFormIDPIncomplete {...defaultProps} idpUserName="existing-user" />);
-    expect(getByTestId("firstname-text-input")).toHaveFocus();
+    const usernameInput = getByTestId("username-text-input") as HTMLInputElement;
+    expect(usernameInput).toHaveFocus();
+    expect(usernameInput.value).toBe("existing-user");
+  });
+
+  test("should always show an editable display name input", () => {
+    const { getByTestId } = render(<RegisterFormIDPIncomplete {...defaultProps} idpUserName="existing-user" />);
+    expect(getByTestId("displayname-text-input")).toBeInTheDocument();
   });
 });

@@ -341,12 +341,15 @@
     "labels": {
       "firstname": "First name",
       "lastname": "Last name",
-      "email": "E-mail"
+      "email": "E-mail",
+      "username": "Username",
+      "displayname": "Display name (optional)"
     },
     "required": {
       "firstname": "This field is required",
       "lastname": "This field is required",
-      "email": "This field is required"
+      "email": "This field is required",
+      "username": "This field is required"
     },
     "errors": {
       "couldNotCreateUser": "Could not create user",

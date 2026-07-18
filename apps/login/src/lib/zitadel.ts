@@ -436,13 +436,27 @@ export type AddHumanUserData = WithServiceConfig<{
   firstName: string;
   lastName: string;
   email: string;
+  username?: string;
+  displayName?: string;
   password?: string;
   organization: string;
 }>;
 
-export async function addHumanUser({ serviceConfig, email, firstName, lastName, password, organization }: AddHumanUserData) {
+export async function addHumanUser({
+  serviceConfig,
+  email,
+  firstName,
+  lastName,
+  username,
+  displayName,
+  password,
+  organization,
+}: AddHumanUserData) {
   const userService: Client<typeof UserService> = await createServiceForHost(UserService, serviceConfig);
 
+  // Only fall back to the email address when the caller genuinely didn't collect a username
+  // from the user - never silently overwrite a chosen username, and never force the display
+  // name to be the legal first/last name.
   let addHumanUserRequest: AddHumanUserRequest = create(AddHumanUserRequestSchema, {
     email: {
       email,
@@ -451,8 +465,12 @@ export async function addHumanUser({ serviceConfig, email, firstName, lastName, 
         value: false,
       },
     },
-    username: email,
-    profile: { givenName: firstName, familyName: lastName },
+    username: username?.trim() ? username.trim() : email,
+    profile: {
+      givenName: firstName,
+      familyName: lastName,
+      displayName: displayName?.trim() ? displayName.trim() : undefined,
+    },
     passwordType: password ? { case: "password", value: { password } } : undefined,
   });
 

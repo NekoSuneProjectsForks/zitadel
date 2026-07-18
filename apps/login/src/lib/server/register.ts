@@ -49,6 +49,8 @@ type RegisterUserCommand = {
   email: string;
   firstName: string;
   lastName: string;
+  username?: string;
+  displayName?: string;
   password?: string;
   organization: string;
   requestId?: string;
@@ -85,6 +87,8 @@ export async function registerUser(
     email: command.email,
     firstName: command.firstName,
     lastName: command.lastName,
+    username: command.username,
+    displayName: command.displayName,
     password: command.password ? command.password : undefined,
     organization: command.organization,
   }).catch((error) => {
@@ -193,6 +197,8 @@ type RegisterUserAndLinkToIDPommand = {
   email: string;
   firstName: string;
   lastName: string;
+  username?: string;
+  displayName?: string;
   organization: string;
   requestId?: string;
   idpIntent: {
@@ -232,6 +238,8 @@ export async function registerUserAndLinkToIDP(
     email: command.email,
     firstName: command.firstName,
     lastName: command.lastName,
+    username: command.username,
+    displayName: command.displayName,
     organization: command.organization,
   });
 
